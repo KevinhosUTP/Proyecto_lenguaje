@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Predictivo - Salarios Data Science</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-900 text-white min-h-screen font-sans">
+
+<header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
+            UTP - Lenguajes de Programación Final
+        </h1>
+        <span class="bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1 rounded-full font-medium border border-emerald-500/20">
+            API Conectada a Supabase
+        </span>
+    </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl h-fit sticky top-24">
+            <div class="flex items-center gap-3 mb-4">
+                <span class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">🤖</span>
+                <h2 class="text-lg font-bold">Predicción de Salario</h2>
+            </div>
+            <p class="text-slate-400 text-xs mb-6">Modelo algorítmico ejecutado bajo el Paradigma Orientado a Objetos (POO) en FastAPI.</p>
+
+            <form id="form-predictor" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Nivel de Experiencia</label>
+                    <select id="experience" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <option value="EN">Junior (Entry-level)</option>
+                        <option value="MI">Mid-level (Intermediate)</option>
+                        <option value="SE" selected>Senior</option>
+                        <option value="EX">Executive / Director</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Tamaño de Empresa</label>
+                    <select id="company_size" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <option value="S">Pequeña (Startup)</option>
+                        <option value="M" selected>Mediana</option>
+                        <option value="L">Grande (Corporación)</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Modalidad de Trabajo</label>
+                    <select id="remote" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                        <option value="0">Presencial</option>
+                        <option value="50">Híbrido (50%)</option>
+                        <option value="100" selected>Remoto (100%)</option>
+                    </select>
+                </div>
+
+                <button type="button" onclick="realizarPrediccion()" class="w-full bg-indigo-600 hover:bg-indigo-500 transition-colors py-3 rounded-lg font-bold text-sm tracking-wide shadow-lg">
+                    Calcular Predicción AI
+                </button>
+            </form>
+
+            <div id="resultado" class="mt-6 p-4 bg-slate-900/50 rounded-xl border border-slate-700/50 hidden text-center">
+                <span class="text-xs text-slate-400 uppercase tracking-wider block">Ingreso Anual Estimado</span>
+                <span id="salario-valor" class="text-3xl font-black text-emerald-400 tracking-tight">$0 USD</span>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 shadow-lg">
+                <h3 class="text-sm font-bold mb-4 text-white flex items-center gap-2">
+                    <span>🎛️</span> Panel de Filtros Analíticos
+                </h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Año</label>
+                        <select id="filtro-anio" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option value="TODOS">Todos</option>
+                            <option value="2025">2025</option>
+                            <option value="2024">2024</option>
+                            <option value="2023">2023</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Nivel</label>
+                        <select id="filtro-exp" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option value="TODOS">Todos</option>
+                            <option value="EN">Junior</option>
+                            <option value="MI">Mid-level</option>
+                            <option value="SE">Senior</option>
+                            <option value="EX">Executive</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Empresa</label>
+                        <select id="filtro-empresa" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option value="TODOS">Todos</option>
+                            <option value="S">Pequeña (S)</option>
+                            <option value="M">Mediana (M)</option>
+                            <option value="L">Grande (L)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Modalidad</label>
+                        <select id="filtro-modalidad" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option value="TODOS">Todos</option>
+                            <option value="0">Presencial</option>
+                            <option value="50">Híbrido</option>
+                            <option value="100">Remoto</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contrato</label>
+                        <select id="filtro-empleo" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                            <option value="TODOS">Todos</option>
+                            <option value="FT">Tiempo Completo (FT)</option>
+                            <option value="PT">Medio Tiempo (PT)</option>
+                            <option value="CT">Contratista (CT)</option>
+                            <option value="FL">Freelance (FL)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 flex justify-between items-center transition-all hover:border-indigo-500">
+                    <div>
+                        <span class="text-xs text-slate-400 block font-medium">Registros Filtrados</span>
+                        <span id="kpi-total" class="text-2xl font-bold mt-1 text-indigo-400">Cargando...</span>
+                    </div>
+                    <span class="text-2xl opacity-80">📊</span>
+                </div>
+                <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 flex justify-between items-center transition-all hover:border-emerald-500">
+                    <div>
+                        <span class="text-xs text-slate-400 block font-medium">Salario Promedio Analizado</span>
+                        <span id="kpi-promedio" class="text-2xl font-bold mt-1 text-emerald-400">Cargando...</span>
+                    </div>
+                    <span class="text-2xl opacity-80">💵</span>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl relative">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-base font-bold text-white">Top 5 Salarios por Puesto</h3>
+                        <p class="text-slate-400 text-xs">Agrupación dinámica usando Programación Funcional en JS.</p>
+                    </div>
+                </div>
+
+                <div id="loader" class="absolute inset-0 bg-slate-800/85 flex items-center justify-center hidden rounded-2xl z-10 transition-opacity">
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-8 h-8 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
+                        <span class="text-emerald-400 text-xs font-semibold animate-pulse">Filtrando datos en la API...</span>
+                    </div>
+                </div>
+
+                <div class="h-64 flex items-center justify-center w-full">
+                    <canvas id="chartSalarios"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<script>
+    const API_BASE = "http://127.0.0.1:8000/api/v1";
+    let miGrafico = null;
+
+    // 1. CARGAR DATOS ESTADÍSTICOS Y ACTUALIZAR DASHBOARD CON MÚLTIPLES FILTROS
+    async function cargarEstadisticas() {
+        document.getElementById('loader').classList.remove('hidden');
+
+        // Capturar los 5 filtros
+        const anio = document.getElementById('filtro-anio').value;
+        const exp = document.getElementById('filtro-exp').value;
+        const empresa = document.getElementById('filtro-empresa').value;
+        const modalidad = document.getElementById('filtro-modalidad').value;
+        const empleo = document.getElementById('filtro-empleo').value;
+
+        // Construir URL completa
+        const url = `${API_BASE}/salarios?anio=${anio}&experiencia=${exp}&tamano_empresa=${empresa}&modalidad=${modalidad}&tipo_empleo=${empleo}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("No se pudo conectar al servidor.");
+            const data = await response.json();
+
+            document.getElementById('kpi-total').innerText = `${data.total} filas`;
+
+            let promedio = 0;
+            if (data.total > 0) {
+                const suma = data.salarios.reduce((acc, curr) => acc + Number(curr.salary_in_usd), 0);
+                promedio = suma / data.total;
+            }
+            const formateador = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+            document.getElementById('kpi-promedio').innerText = formateador.format(promedio);
+
+            const conteoPuestos = data.salarios.reduce((acc, item) => {
+                const puesto = item.job_title;
+                if (!acc[puesto]) acc[puesto] = [];
+                acc[puesto].push(Number(item.salary_in_usd));
+                return acc;
+            }, {});
+
+            const topPuestos = Object.keys(conteoPuestos)
+                .sort((a, b) => conteoPuestos[b].length - conteoPuestos[a].length)
+                .slice(0, 5);
+
+            const labels = topPuestos.length > 0 ? topPuestos : ["Sin Datos"];
+            const promediosPorPuesto = labels.map(puesto => {
+                if(puesto === "Sin Datos") return 0;
+                const salarios = conteoPuestos[puesto];
+                const sum = salarios.reduce((a, b) => a + b, 0);
+                return sum / salarios.length;
+            });
+
+            const ctx = document.getElementById('chartSalarios').getContext('2d');
+
+            if (miGrafico) {
+                miGrafico.destroy();
+            }
+
+            miGrafico = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Salario Promedio USD',
+                        data: promediosPorPuesto,
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: '#10b981',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        hoverBackgroundColor: 'rgba(99, 102, 241, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 600, easing: 'easeOutQuart' },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 25, minRotation: 25 } }
+                    }
+                }
+            });
+
+        } catch (error) {
+            console.error("Error cargando estadísticas:", error);
+            document.getElementById('kpi-total').innerText = "0 filas";
+            document.getElementById('kpi-promedio').innerText = "$0";
+        } finally {
+            document.getElementById('loader').classList.add('hidden');
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", cargarEstadisticas);
+
+    // 2. FUNCIÓN DE PREDICCIÓN (POO)
+    async function realizarPrediccion() {
+        const exp = document.getElementById('experience').value;
+        const size = document.getElementById('company_size').value;
+        const remote = document.getElementById('remote').value;
+
+        const url = `${API_BASE}/predecir?experience_level=${exp}&company_size=${size}&remote_ratio=${remote}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Error en la petición");
+
+            const data = await response.json();
+            const formateador = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+
+            document.getElementById('salario-valor').innerText = formateador.format(data.salario_predicho_usd);
+            document.getElementById('resultado').classList.remove('hidden');
+        } catch (error) {
+            alert("Error al comunicarse con la API de FastAPI.");
+            console.error(error);
+        }
+    }
+</script>
+</body>
+</html>

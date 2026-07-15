@@ -1,0 +1,35 @@
+# =========================
+# 1. Credenciales y Seguridad (¡CRÍTICO!)
+# =========================
+.env
+.env.*
+
+# =========================
+# 2. Datos y Archivos Raw
+# =========================
+*.xlsx
+*.xls
+*.csv
+# Si tienes algún archivo json de pruebas local
+*.json
+!openapi.json # Excepción si algún día exportas tu swagger
+
+# =========================
+# 3. Entornos Virtuales de Python
+# =========================
+.venv/
+venv/
+env/
+
+# =========================
+# 4. Caché de Python (Archivos basura generados automáticamente)
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# =========================
+# 5. Configuraciones del IDE (IntelliJ IDEA / PyCharm)
+# =========================
+.idea/
+*.iml
