@@ -1,26 +1,22 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from pathlib import Path
 from typing import Optional
 
-# Cargar variables de entorno desde tu archivo .env (ruta explícita)
 env_path = Path(__file__).resolve().parent / ".env"
 load_dotenv(dotenv_path=str(env_path))
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-# Debug: indicar si se cargaron
-print("DEBUG: SUPABASE_URL loaded:", bool(SUPABASE_URL))
-
 app = FastAPI(
-    title="API de Predicción de Salarios Tech - UTP",
-    description="Proyecto Final con manejo avanzado de excepciones (400, 402, 404, 500, 501)"
+    title="Sistema inteligente de predicción salarial para Ingenieros en Ciencia de Datos",
+    description="API con seguridad Bearer Token y manejo de excepciones"
 )
 
-# Permitir CORS para la conexión con el Frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,13 +25,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def ruta_principal():
-    return {
-        "mensaje": "¡Bienvenido a la API de Predicción de Salarios Tech!",
-        "estado": "En línea"
-    }
+# --- 1. CONFIGURACIÓN DE SEGURIDAD BEARER TOKEN ---
+security = HTTPBearer()
 
+def verificar_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token_recibido = credentials.credentials
+    if token_recibido != "admin123":
+        raise HTTPException(
+            status_code=401,
+            detail="Acceso denegado. Token de autorización inválido.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return token_recibido
+
+# --- CLASES Y FUNCIONES ---
 class PredictorSalario:
     def __init__(self, datos_historicos: list):
         self.datos = datos_historicos
@@ -56,77 +59,60 @@ mapear_experiencia_completa = lambda codigo: {
     "EX": "Executive / Director"
 }.get(codigo, "Desconocido")
 
+# --- ENDPOINTS ---
+@app.get("/")
+def ruta_principal():
+    return {"mensaje": "API en línea. Usa endpoints protegidos."}
+
 @app.get("/api/v1/salarios")
 def obtener_todos_los_salarios(
         anio: Optional[str] = None,
         experiencia: Optional[str] = None,
         tamano_empresa: Optional[str] = None,
         modalidad: Optional[str] = None,
-        tipo_empleo: Optional[str] = None
+        tipo_empleo: Optional[str] = None,
+        token: str = Depends(verificar_token) # <-- CANDADO DE SEGURIDAD
 ):
     try:
         if anio and anio.isdigit() and int(anio) > 2025:
-            raise HTTPException(status_code=501, detail="Las predicciones para años futuros (mayores a 2025) aún no están implementadas en este modelo.")
+            raise HTTPException(status_code=501, detail="Las predicciones para años futuros (mayores a 2025) aún no están implementadas.")
 
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-        # PARADIGMA DECLARATIVO (SQL a nivel de Base de Datos)
-        # Pedimos a Supabase que nos devuelva el total REAL de la tabla con count="exact"
         query = supabase.table("data_science_salaries").select("*", count="exact")
 
-        # Aplicamos los filtros directamente en la consulta SQL
-        if anio and anio != "TODOS":
-            query = query.eq("work_year", int(anio))
-        if experiencia and experiencia != "TODOS":
-            query = query.eq("experience_level", experiencia)
-        if tamano_empresa and tamano_empresa != "TODOS":
-            query = query.eq("company_size", tamano_empresa)
-        if modalidad and modalidad != "TODOS":
-            query = query.eq("remote_ratio", int(modalidad))
-        if tipo_empleo and tipo_empleo != "TODOS":
-            query = query.eq("employment_type", tipo_empleo)
+        if anio and anio != "TODOS": query = query.eq("work_year", int(anio))
+        if experiencia and experiencia != "TODOS": query = query.eq("experience_level", experiencia)
+        if tamano_empresa and tamano_empresa != "TODOS": query = query.eq("company_size", tamano_empresa)
+        if modalidad and modalidad != "TODOS": query = query.eq("remote_ratio", int(modalidad))
+        if tipo_empleo and tipo_empleo != "TODOS": query = query.eq("employment_type", tipo_empleo)
 
-        # Ejecutamos la consulta. Traemos una muestra de 1000 para el gráfico, pero obtenemos el Total Real
         respuesta = query.limit(1000).execute()
-
         datos_crudos = respuesta.data
-        total_registros = respuesta.count  # ¡Aquí viene el 93,000 real!
+        total_registros = respuesta.count
 
         if not datos_crudos:
-            raise HTTPException(status_code=404, detail="No se encontraron registros en la base de datos para esta combinación estricta de filtros.")
+            raise HTTPException(status_code=404, detail="No se encontraron registros para esta combinación.")
 
-        # PARADIGMA FUNCIONAL (Transformación en memoria)
-        # Usamos map y lambdas para enriquecer la data antes de enviarla
         datos_transformados = list(map(
-            lambda item: {
-                **item,
-                "experience_label": mapear_experiencia_completa(item["experience_level"])
-            },
+            lambda item: {**item, "experience_label": mapear_experiencia_completa(item["experience_level"])},
             datos_crudos
         ))
 
-        return {
-            "total": total_registros, # Enviamos el total exacto (ej. 93000)
-            "salarios": datos_transformados # Enviamos la muestra gráfica
-        }
+        return {"total": total_registros, "salarios": datos_transformados}
 
-    except HTTPException as http_e:
-        raise http_e
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
+    except HTTPException as http_e: raise http_e
+    except Exception as e: raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
 
 @app.get("/api/v1/predecir")
-def predecir_salario(experience_level: str, company_size: str, remote_ratio: int, version_api: Optional[str] = "v1"):
+def predecir_salario(
+        experience_level: str,
+        company_size: str,
+        remote_ratio: int,
+        token: str = Depends(verificar_token) # <-- CANDADO DE SEGURIDAD
+):
     try:
-        # TRAMPA: Simulador de Código 400 (Bad Request)
         if experience_level not in ["EN", "MI", "SE", "EX"]:
-            raise HTTPException(status_code=400, detail="Parámetro 'experience_level' inválido. Solo se acepta EN, MI, SE o EX.")
-
-        # TRAMPA: Simulador de Código 402 (Payment Required)
-        if version_api == "v2_premium":
-            raise HTTPException(status_code=402, detail="Se requiere una suscripción Premium activa para usar el modelo algorítmico V2.")
+            raise HTTPException(status_code=400, detail="Parámetro 'experience_level' inválido. Solo EN, MI, SE o EX.")
 
         supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
         respuesta = supabase.table("data_science_salaries").select("*").limit(10).execute()
@@ -135,26 +121,13 @@ def predecir_salario(experience_level: str, company_size: str, remote_ratio: int
             raise HTTPException(status_code=404, detail="No hay datos suficientes de entrenamiento.")
 
         predictor = PredictorSalario(datos_historicos=respuesta.data)
-        salario_estimado = predictor.calcular_prediccion(
-            exp=experience_level.upper(),
-            size=company_size.upper(),
-            remote=remote_ratio
-        )
+        salario_estimado = predictor.calcular_prediccion(exp=experience_level.upper(), size=company_size.upper(), remote=remote_ratio)
 
-        return {
-            "inputs": {"experience_level": experience_level, "company_size": company_size, "remote_ratio": remote_ratio},
-            "salario_predicho_usd": salario_estimado,
-            "moneda": "USD"
-        }
+        return {"inputs": {"experience_level": experience_level, "company_size": company_size, "remote_ratio": remote_ratio}, "salario_predicho_usd": salario_estimado, "moneda": "USD"}
 
-    except HTTPException as http_e:
-        raise http_e
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error en la predicción: {str(e)}")
+    except HTTPException as http_e: raise http_e
+    except Exception as e: raise HTTPException(status_code=500, detail=f"Error en la predicción: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
-    # Se corrigió el typo 'hzzost' a 'host'
     uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
