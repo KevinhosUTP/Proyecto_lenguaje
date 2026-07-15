@@ -61,3 +61,59 @@ body {
     font-size: 11px;
     letter-spacing: 1px;
 }
+
+/* =========================================
+   MODO CLARO (LIGHT MODE OVERRIDES)
+========================================= */
+body.light-mode {
+    background-color: #F3F4F6 !important;
+    background-image:
+            linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px) !important;
+}
+
+/* --- 1. CORRECCIÓN DEL HEADER --- */
+/* Forzamos el fondo blanco translúcido y borde gris */
+body.light-mode header {
+    background-color: rgba(255, 255, 255, 0.9) !important;
+    border-bottom-color: #E5E7EB !important;
+}
+
+/* --- 2. CORRECCIÓN DEL FOOTER --- */
+/* Forzamos letras oscuras ignorando las variables Cyber */
+body.light-mode .footer-integrantes p {
+    color: #6B7280 !important; /* Gris oscuro para los textos secundarios */
+}
+body.light-mode .footer-integrantes .nombre {
+    color: #111827 !important; /* Casi negro para que los nombres resalten */
+}
+
+/* --- 3. INVERTIR PANELES --- */
+body.light-mode .bg-\[\#121212\],
+body.light-mode .bg-\[\#0A0A0A\] {
+    background-color: #FFFFFF !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* --- 4. INVERTIR BORDES --- */
+body.light-mode .border-\[\#2A2A2A\],
+body.light-mode .border-\[\#333333\] {
+    border-color: #E5E7EB !important;
+}
+
+/* --- 5. INVERTIR TEXTOS GENERALES --- */
+/* Esto hará que el título del Header y los labels pasen a ser oscuros */
+body.light-mode .text-white { color: #111827 !important; }
+body.light-mode .text-\[\#888888\] { color: #6B7280 !important; }
+
+/* --- 6. INVERTIR SELECTS --- */
+body.light-mode select {
+    background-color: #F9FAFB !important;
+    color: #111827 !important;
+}
+
+/* --- 7. INVERTIR LLUVIA DIGITAL --- */
+body.light-mode #bg-codigo {
+    filter: invert(1) hue-rotate(180deg);
+    opacity: 0.1 !important;
+}

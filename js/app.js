@@ -178,12 +178,13 @@ async function cargarEstadisticas() {
                 plugins: { legend: { display: false } },
                 scales: {
                     y: {
-                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                        ticks: { color: '#888888', font: { family: 'system-ui' } }
+                        // Verificamos si estamos en modo claro para oscurecer la grilla
+                        grid: { color: document.body.classList.contains('light-mode') ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: document.body.classList.contains('light-mode') ? '#6B7280' : '#888888', font: { family: 'system-ui' } }
                     },
                     x: {
                         grid: { display: false },
-                        ticks: { color: '#888888', maxRotation: 15, minRotation: 15, font: { family: 'system-ui' } }
+                        ticks: { color: document.body.classList.contains('light-mode') ? '#6B7280' : '#888888', maxRotation: 15, minRotation: 15, font: { family: 'system-ui' } }
                     }
                 }
             }
@@ -244,4 +245,10 @@ document.addEventListener("DOMContentLoaded", () => {
     // Escuchar cambios en los selects
     const filtros = document.querySelectorAll('.filtros-dashboard');
     filtros.forEach(select => select.addEventListener('change', cargarEstadisticas));
+
+    // Evento para el botón de Modo Claro
+    document.getElementById('btn-theme').addEventListener('click', () => {
+        document.body.classList.toggle('light-mode');
+        cargarEstadisticas(); // Recargamos la gráfica para que cambie de color
+    });
 });
