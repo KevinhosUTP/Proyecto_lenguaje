@@ -6,160 +6,186 @@
     <title>Dashboard Predictivo - Salarios Data Science</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Animaciones para las notificaciones de error */
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
+    </style>
 </head>
-<body class="bg-slate-900 text-white min-h-screen font-sans">
+<body class="bg-slate-900 text-white min-h-screen font-sans relative overflow-x-hidden">
 
-<header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+<div id="toast-container" class="fixed top-20 right-6 z-50 flex flex-col gap-3"></div>
+
+<header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <h1 class="text-xl font-bold bg-gradient-to-r from-indigo-400 to-emerald-400 bg-clip-text text-transparent">
             UTP - Lenguajes de Programación Final
         </h1>
-        <span class="bg-emerald-500/10 text-emerald-400 text-xs px-3 py-1 rounded-full font-medium border border-emerald-500/20">
-            API Conectada a Supabase
-        </span>
+        <div class="flex gap-2">
+            <span class="bg-emerald-500/10 text-emerald-400 text-[10px] px-3 py-1 rounded-full font-medium border border-emerald-500/20 uppercase tracking-widest">PostgreSQL</span>
+            <span class="bg-indigo-500/10 text-indigo-400 text-[10px] px-3 py-1 rounded-full font-medium border border-indigo-500/20 uppercase tracking-widest">FastAPI</span>
+        </div>
     </div>
 </header>
 
 <main class="max-w-7xl mx-auto px-6 py-8">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
 
-        <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl h-fit sticky top-24">
-            <div class="flex items-center gap-3 mb-4">
-                <span class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg">🤖</span>
-                <h2 class="text-lg font-bold">Predicción de Salario</h2>
+        <div class="bg-slate-800 rounded-2xl border border-slate-700 p-8 shadow-xl h-fit sticky top-24">
+            <div class="flex items-center gap-3 mb-2">
+                <span class="p-2 bg-indigo-500/10 text-indigo-400 rounded-lg text-xl">🤖</span>
+                <h2 class="text-xl font-bold">Predictor AI</h2>
             </div>
-            <p class="text-slate-400 text-xs mb-6">Modelo algorítmico ejecutado bajo el Paradigma Orientado a Objetos (POO) en FastAPI.</p>
+            <p class="text-slate-400 text-xs mb-8 leading-relaxed">Modelo algorítmico ejecutado bajo el Paradigma Orientado a Objetos (POO) y Manejo de Excepciones.</p>
 
-            <form id="form-predictor" class="space-y-4">
+            <form id="form-predictor" class="space-y-5">
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Nivel de Experiencia</label>
-                    <select id="experience" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Nivel de Experiencia</label>
+                    <select id="experience" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
                         <option value="EN">Junior (Entry-level)</option>
                         <option value="MI">Mid-level (Intermediate)</option>
                         <option value="SE" selected>Senior</option>
                         <option value="EX">Executive / Director</option>
+                        <option value="XX" class="text-yellow-400 font-bold">⚠️ Forzar Error 400</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Tamaño de Empresa</label>
-                    <select id="company_size" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Tamaño de Empresa</label>
+                    <select id="company_size" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
                         <option value="S">Pequeña (Startup)</option>
                         <option value="M" selected>Mediana</option>
                         <option value="L">Grande (Corporación)</option>
                     </select>
                 </div>
 
-                <div>
-                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Modalidad de Trabajo</label>
-                    <select id="remote" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-indigo-500">
-                        <option value="0">Presencial</option>
-                        <option value="50">Híbrido (50%)</option>
-                        <option value="100" selected>Remoto (100%)</option>
-                    </select>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Modalidad</label>
+                        <select id="remote" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors">
+                            <option value="0">Presencial</option>
+                            <option value="50">Híbrido</option>
+                            <option value="100" selected>Remoto</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Motor AI</label>
+                        <select id="version_api" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-3 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors">
+                            <option value="v1">Estándar (V1)</option>
+                            <option value="v2_premium" class="text-pink-400 font-bold">Premium (Test 402)</option>
+                        </select>
+                    </div>
                 </div>
 
-                <button type="button" onclick="realizarPrediccion()" class="w-full bg-indigo-600 hover:bg-indigo-500 transition-colors py-3 rounded-lg font-bold text-sm tracking-wide shadow-lg">
-                    Calcular Predicción AI
+                <button type="button" onclick="realizarPrediccion()" class="w-full bg-indigo-600 hover:bg-indigo-500 transition-colors py-3.5 rounded-lg font-bold text-sm tracking-wide shadow-lg mt-4">
+                    Calcular Predicción
                 </button>
             </form>
 
-            <div id="resultado" class="mt-6 p-4 bg-slate-900/50 rounded-xl border border-slate-700/50 hidden text-center">
-                <span class="text-xs text-slate-400 uppercase tracking-wider block">Ingreso Anual Estimado</span>
-                <span id="salario-valor" class="text-3xl font-black text-emerald-400 tracking-tight">$0 USD</span>
+            <div id="resultado" class="mt-8 p-5 bg-slate-900/50 rounded-xl border border-slate-700/50 hidden text-center">
+                <span class="text-xs text-slate-400 uppercase tracking-wider block mb-1">Ingreso Anual Estimado</span>
+                <span id="salario-valor" class="text-4xl font-black text-emerald-400 tracking-tight">$0 USD</span>
             </div>
         </div>
 
-        <div class="lg:col-span-2 space-y-6">
+        <div class="lg:col-span-2 space-y-8">
 
-            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5 shadow-lg">
-                <h3 class="text-sm font-bold mb-4 text-white flex items-center gap-2">
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-lg">
+                <h3 class="text-sm font-bold mb-5 text-white flex items-center gap-2 border-b border-slate-700 pb-3">
                     <span>🎛️</span> Panel de Filtros Analíticos
                 </h3>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Año</label>
-                        <select id="filtro-anio" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-                            <option value="TODOS">Todos</option>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Año de Ejercicio</label>
+                        <select id="filtro-anio" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 cursor-pointer">
+                            <option value="TODOS">Todos los años históricos</option>
                             <option value="2025">2025</option>
                             <option value="2024">2024</option>
                             <option value="2023">2023</option>
+                            <option value="2022">2022</option>
+                            <option value="2021">2021</option>
+                            <option value="2020">2020</option>
+                            <option value="2026" class="text-purple-400 font-bold">2026 (Test Error 501)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Nivel</label>
-                        <select id="filtro-exp" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-                            <option value="TODOS">Todos</option>
-                            <option value="EN">Junior</option>
-                            <option value="MI">Mid-level</option>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Nivel de Carrera</label>
+                        <select id="filtro-exp" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2.5 text-sm text-white focus:outline-none focus:border-emerald-500 cursor-pointer">
+                            <option value="TODOS">Cualquier nivel de experiencia</option>
+                            <option value="EN">Junior (Entry-level)</option>
+                            <option value="MI">Mid-level (Intermediate)</option>
                             <option value="SE">Senior</option>
-                            <option value="EX">Executive</option>
+                            <option value="EX">Executive / Director</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Tamaño de Empresa</label>
+                        <select id="filtro-empresa" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer">
+                            <option value="TODOS">Todas</option>
+                            <option value="S">Pequeña</option>
+                            <option value="M">Mediana</option>
+                            <option value="L">Grande</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Empresa</label>
-                        <select id="filtro-empresa" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-                            <option value="TODOS">Todos</option>
-                            <option value="S">Pequeña (S)</option>
-                            <option value="M">Mediana (M)</option>
-                            <option value="L">Grande (L)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Modalidad</label>
-                        <select id="filtro-modalidad" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
-                            <option value="TODOS">Todos</option>
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Modalidad</label>
+                        <select id="filtro-modalidad" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer">
+                            <option value="TODOS">Todas</option>
                             <option value="0">Presencial</option>
                             <option value="50">Híbrido</option>
                             <option value="100">Remoto</option>
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Contrato</label>
-                        <select id="filtro-empleo" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded p-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                        <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Tipo de Contrato</label>
+                        <select id="filtro-empleo" onchange="cargarEstadisticas()" class="w-full bg-slate-900 border border-slate-600 rounded-lg p-2 text-xs text-white focus:outline-none focus:border-emerald-500 cursor-pointer">
                             <option value="TODOS">Todos</option>
-                            <option value="FT">Tiempo Completo (FT)</option>
-                            <option value="PT">Medio Tiempo (PT)</option>
-                            <option value="CT">Contratista (CT)</option>
-                            <option value="FL">Freelance (FL)</option>
+                            <option value="FT">Full-Time</option>
+                            <option value="PT">Part-Time</option>
+                            <option value="CT">Contract</option>
+                            <option value="FL">Freelance</option>
                         </select>
                     </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 flex justify-between items-center transition-all hover:border-indigo-500">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 flex justify-between items-center transition-all hover:border-indigo-500">
                     <div>
-                        <span class="text-xs text-slate-400 block font-medium">Registros Filtrados</span>
-                        <span id="kpi-total" class="text-2xl font-bold mt-1 text-indigo-400">Cargando...</span>
+                        <span class="text-xs text-slate-400 block font-bold uppercase tracking-wider mb-1">Registros Locales</span>
+                        <span id="kpi-total" class="text-3xl font-black text-indigo-400">0</span>
                     </div>
-                    <span class="text-2xl opacity-80">📊</span>
+                    <span class="text-4xl opacity-50 grayscale">📊</span>
                 </div>
-                <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 flex justify-between items-center transition-all hover:border-emerald-500">
+                <div class="bg-slate-800 rounded-2xl p-6 border border-slate-700 flex justify-between items-center transition-all hover:border-emerald-500">
                     <div>
-                        <span class="text-xs text-slate-400 block font-medium">Salario Promedio Analizado</span>
-                        <span id="kpi-promedio" class="text-2xl font-bold mt-1 text-emerald-400">Cargando...</span>
+                        <span class="text-xs text-slate-400 block font-bold uppercase tracking-wider mb-1">Promedio Analizado</span>
+                        <span id="kpi-promedio" class="text-3xl font-black text-emerald-400">$0</span>
                     </div>
-                    <span class="text-2xl opacity-80">💵</span>
+                    <span class="text-4xl opacity-50 grayscale">💵</span>
                 </div>
             </div>
 
-            <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl relative">
-                <div class="flex justify-between items-center mb-6">
+            <div class="bg-slate-800 rounded-2xl border border-slate-700 p-6 shadow-xl relative min-h-[350px] flex flex-col">
+                <div class="flex justify-between items-start mb-6">
                     <div>
-                        <h3 class="text-base font-bold text-white">Top 5 Salarios por Puesto</h3>
-                        <p class="text-slate-400 text-xs">Agrupación dinámica usando Programación Funcional en JS.</p>
+                        <h3 class="text-lg font-bold text-white mb-1">Distribución Top 5 de Salarios</h3>
+                        <p class="text-slate-400 text-xs">Agrupación dinámica vía Funciones Lambda en Python.</p>
                     </div>
                 </div>
 
-                <div id="loader" class="absolute inset-0 bg-slate-800/85 flex items-center justify-center hidden rounded-2xl z-10 transition-opacity">
-                    <div class="flex flex-col items-center gap-2">
-                        <div class="w-8 h-8 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin"></div>
-                        <span class="text-emerald-400 text-xs font-semibold animate-pulse">Filtrando datos en la API...</span>
+                <div id="loader" class="absolute inset-0 bg-slate-800/90 flex items-center justify-center hidden rounded-2xl z-10 transition-opacity backdrop-blur-sm">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-10 h-10 border-4 border-emerald-400 border-t-transparent rounded-full animate-spin shadow-lg"></div>
+                        <span class="text-emerald-400 text-sm font-bold tracking-widest animate-pulse">PROCESANDO CONSULTA...</span>
                     </div>
                 </div>
 
-                <div class="h-64 flex items-center justify-center w-full">
+                <div class="flex-1 flex items-center justify-center w-full">
                     <canvas id="chartSalarios"></canvas>
                 </div>
             </div>
@@ -172,31 +198,71 @@
     const API_BASE = "http://127.0.0.1:8000/api/v1";
     let miGrafico = null;
 
-    // 1. CARGAR DATOS ESTADÍSTICOS Y ACTUALIZAR DASHBOARD CON MÚLTIPLES FILTROS
+    // --- SISTEMA DE MANEJO DE EXCEPCIONES EN LA UI ---
+    function mostrarError(codigo, mensaje) {
+        const colores = {
+            400: 'border-yellow-500 text-yellow-400',
+            402: 'border-pink-500 text-pink-400',
+            404: 'border-orange-500 text-orange-400',
+            500: 'border-red-500 text-red-400',
+            501: 'border-purple-500 text-purple-400'
+        };
+        const colorClass = colores[codigo] || 'border-red-500 text-red-400';
+
+        const toast = document.createElement('div');
+        toast.className = `bg-slate-800 border-l-4 ${colorClass} p-4 rounded-r shadow-2xl max-w-sm toast-enter relative overflow-hidden`;
+        toast.innerHTML = `
+            <div class="flex items-start gap-3">
+                <span class="text-xl font-bold">Error ${codigo}</span>
+                <p class="text-sm text-slate-300 leading-tight">${mensaje}</p>
+            </div>
+            <button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-slate-500 hover:text-white">&times;</button>
+        `;
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => toast.remove(), 7000);
+    }
+
+    async function manejarRespuesta(response) {
+        if (!response.ok) {
+            let errorMsg = "Error desconocido del servidor.";
+            try {
+                const dataError = await response.json();
+                errorMsg = dataError.detail || errorMsg;
+            } catch (e) {}
+            mostrarError(response.status, errorMsg);
+            throw new Error(`HTTP Error ${response.status}`);
+        }
+        return response.json();
+    }
+
+    // --- DASHBOARD ESTADÍSTICO ---
     async function cargarEstadisticas() {
         document.getElementById('loader').classList.remove('hidden');
 
-        // Capturar los 5 filtros
         const anio = document.getElementById('filtro-anio').value;
         const exp = document.getElementById('filtro-exp').value;
         const empresa = document.getElementById('filtro-empresa').value;
         const modalidad = document.getElementById('filtro-modalidad').value;
         const empleo = document.getElementById('filtro-empleo').value;
 
-        // Construir URL completa
         const url = `${API_BASE}/salarios?anio=${anio}&experiencia=${exp}&tamano_empresa=${empresa}&modalidad=${modalidad}&tipo_empleo=${empleo}`;
 
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error("No se pudo conectar al servidor.");
-            const data = await response.json();
+            const data = await manejarRespuesta(response); // Captura errores HTTP (404, 501, 500)
 
-            document.getElementById('kpi-total').innerText = `${data.total} filas`;
+            document.getElementById('kpi-total').innerText = `${data.total} registros`;
 
+            // Mostrar el total REAL de la base de datos (Ej: 93,000)
+            const formaterTotal = new Intl.NumberFormat('en-US');
+            document.getElementById('kpi-total').innerText = `${formaterTotal.format(data.total)} registros`;
+
+            // Calcular Promedio de la muestra usando reduce (Programación Funcional)
             let promedio = 0;
-            if (data.total > 0) {
+            if (data.salarios.length > 0) {
                 const suma = data.salarios.reduce((acc, curr) => acc + Number(curr.salary_in_usd), 0);
-                promedio = suma / data.total;
+                // IMPORTANTE: Dividimos entre el tamaño de la muestra, no entre el total de la BD
+                promedio = suma / data.salarios.length;
             }
             const formateador = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
             document.getElementById('kpi-promedio').innerText = formateador.format(promedio);
@@ -216,15 +282,11 @@
             const promediosPorPuesto = labels.map(puesto => {
                 if(puesto === "Sin Datos") return 0;
                 const salarios = conteoPuestos[puesto];
-                const sum = salarios.reduce((a, b) => a + b, 0);
-                return sum / salarios.length;
+                return salarios.reduce((a, b) => a + b, 0) / salarios.length;
             });
 
             const ctx = document.getElementById('chartSalarios').getContext('2d');
-
-            if (miGrafico) {
-                miGrafico.destroy();
-            }
+            if (miGrafico) miGrafico.destroy();
 
             miGrafico = new Chart(ctx, {
                 type: 'bar',
@@ -233,29 +295,29 @@
                     datasets: [{
                         label: 'Salario Promedio USD',
                         data: promediosPorPuesto,
-                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.8)',
                         borderColor: '#10b981',
-                        borderWidth: 1.5,
-                        borderRadius: 6,
-                        hoverBackgroundColor: 'rgba(99, 102, 241, 0.8)'
+                        borderWidth: 0,
+                        borderRadius: 8,
+                        hoverBackgroundColor: 'rgba(99, 102, 241, 0.9)'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: { duration: 600, easing: 'easeOutQuart' },
+                    animation: { duration: 600 },
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#94a3b8' } },
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 25, minRotation: 25 } }
+                        y: { grid: { color: 'rgba(255, 255, 255, 0.05)', borderDash: [5, 5] }, ticks: { color: '#64748b', font: {family: 'system-ui', size: 11} } },
+                        x: { grid: { display: false }, ticks: { color: '#64748b', maxRotation: 20, minRotation: 20, font: {family: 'system-ui', size: 11} } }
                     }
                 }
             });
 
         } catch (error) {
-            console.error("Error cargando estadísticas:", error);
-            document.getElementById('kpi-total').innerText = "0 filas";
+            document.getElementById('kpi-total').innerText = "0 registros";
             document.getElementById('kpi-promedio').innerText = "$0";
+            if (miGrafico) miGrafico.destroy();
         } finally {
             document.getElementById('loader').classList.add('hidden');
         }
@@ -263,26 +325,24 @@
 
     document.addEventListener("DOMContentLoaded", cargarEstadisticas);
 
-    // 2. FUNCIÓN DE PREDICCIÓN (POO)
+    // --- PREDICCIÓN (POO) ---
     async function realizarPrediccion() {
         const exp = document.getElementById('experience').value;
         const size = document.getElementById('company_size').value;
         const remote = document.getElementById('remote').value;
+        const version = document.getElementById('version_api').value;
 
-        const url = `${API_BASE}/predecir?experience_level=${exp}&company_size=${size}&remote_ratio=${remote}`;
+        const url = `${API_BASE}/predecir?experience_level=${exp}&company_size=${size}&remote_ratio=${remote}&version_api=${version}`;
 
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error("Error en la petición");
+            const data = await manejarRespuesta(response); // Captura 400 y 402
 
-            const data = await response.json();
             const formateador = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
-
             document.getElementById('salario-valor').innerText = formateador.format(data.salario_predicho_usd);
             document.getElementById('resultado').classList.remove('hidden');
         } catch (error) {
-            alert("Error al comunicarse con la API de FastAPI.");
-            console.error(error);
+            document.getElementById('resultado').classList.add('hidden');
         }
     }
 </script>
